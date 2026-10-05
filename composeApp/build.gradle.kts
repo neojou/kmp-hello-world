@@ -8,7 +8,10 @@ plugins {
     alias(libs.plugins.composeCompiler)
 }
 
-group = "com.neojou.helloworld"
+val appGroup = providers.gradleProperty("app.group").get()
+val appRootName = providers.gradleProperty("app.rootName").get()
+
+group = appGroup
 version = "0.1.0"
 
 kotlin {
@@ -17,7 +20,7 @@ kotlin {
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        outputModuleName.set("HelloWorld")
+        outputModuleName.set(appRootName)
         browser { }
         binaries.executable()
     }
@@ -43,10 +46,10 @@ kotlin {
 
 compose.desktop {
     application {
-        mainClass = "com.neojou.helloworld.MainKt"
+        mainClass = "$appGroup.MainKt"
     }
 }
 
 compose.resources {
-    packageOfResClass = "com.neojou.helloworld"
+    packageOfResClass = appGroup
 }

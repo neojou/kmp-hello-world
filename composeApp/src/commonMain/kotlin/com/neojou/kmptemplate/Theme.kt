@@ -1,4 +1,4 @@
-package com.neojou.helloworld
+package com.neojou.kmptemplate
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography

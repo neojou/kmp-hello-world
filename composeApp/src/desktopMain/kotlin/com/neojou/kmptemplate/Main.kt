@@ -1,4 +1,4 @@
-package com.neojou.helloworld
+package com.neojou.kmptemplate
 
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -16,7 +16,7 @@ fun main() {
         )
         Window(
             onCloseRequest = ::exitApplication,
-            title = "Hello World",
+            title = AppVersion.APP_NAME,
             state = windowState,
         ) {
             App()

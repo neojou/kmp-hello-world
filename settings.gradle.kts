@@ -1,4 +1,4 @@
-rootProject.name = "HelloWorld"
+rootProject.name = providers.gradleProperty("app.rootName").get()
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {

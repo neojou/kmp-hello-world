@@ -1,4 +1,4 @@
-package com.neojou.helloworld
+package com.neojou.kmptemplate
 
 /**
  * Application product version — **single source of truth** for UI / About.
@@ -11,11 +11,13 @@ package com.neojou.helloworld
  * - [DISPLAY]: shown in About, typically `"v" + NAME`
  */
 object AppVersion {
-    /** Product name (Traditional Chinese). */
-    const val APP_NAME: String = "你好世界"
-
-    /** English / package short name. */
-    const val APP_NAME_EN: String = "Hello World"
+    /**
+     * User-visible product name.
+     *
+     * Window title, HTML title, home headline, and About all read this value.
+     * `./configure.sh proj_name` rewrites the literal on this line.
+     */
+    const val APP_NAME: String = "KMP Template" // configure:app.displayName
 
     /**
      * Marketing / product version string (no leading `v`).

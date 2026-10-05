@@ -1,4 +1,4 @@
-package com.neojou.helloworld
+package com.neojou.kmptemplate
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -75,7 +75,7 @@ fun App() {
     AppTheme {
         when (val state = initState) {
             AppInitState.Loading -> Text("Loading...")
-            AppInitState.Ready -> HelloWorld()
+            AppInitState.Ready -> HomeScreen()
             is AppInitState.Error -> Text("Init failed: ${state.error.message ?: "unknown"}")
         }
     }

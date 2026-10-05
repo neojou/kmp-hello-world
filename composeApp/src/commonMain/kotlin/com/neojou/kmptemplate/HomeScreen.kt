@@ -1,4 +1,4 @@
-package com.neojou.helloworld
+package com.neojou.kmptemplate
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,9 +30,9 @@ import com.neojou.tools.ui.menu.MyTopMenuBar
 import com.neojou.tools.ui.menu.MyTopMenuItem
 
 /**
- * Log tag used by [StockViewer] for logging UI events.
+ * Log tag used by [HomeScreen] for logging UI events.
  */
-private const val TAG = "HelloWorld"
+private const val TAG = "Home"
 
 /**
  * Main content modes for the shell area below the toolbar.
@@ -53,7 +53,7 @@ private enum class MainContent {
  * - K Chart → View / Settings（均線 + KD + MACD 參數）
  */
 @Composable
-fun HelloWorld() {
+fun HomeScreen() {
     var showAbout by remember { mutableStateOf(false) }
 
     // Product-specific menu tree only; [MyTopMenuBar] stays app-agnostic.
@@ -81,7 +81,7 @@ fun HelloWorld() {
                 .padding(innerPadding),
             contentAlignment = Alignment.Center,
         ) {
-            Text("Hello World")
+            Text(AppVersion.APP_NAME)
         }
     }
 
@@ -115,11 +115,6 @@ private fun AboutDialog(onDismiss: () -> Unit) {
                     text = AppVersion.APP_NAME,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Medium,
-                )
-                Text(
-                    text = AppVersion.APP_NAME_EN,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
                 )
                 Text(
                     text = "版本 ${AppVersion.DISPLAY}",
