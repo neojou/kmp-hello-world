@@ -24,8 +24,13 @@ MARKER = "configure:app.displayName"
 MARKER_RE = re.compile(
     r'^(\s*const val APP_NAME:\s*String\s*=\s*")(?:\\.|[^"\\])*("\s*//\s*configure:app\.displayName)\s*$'
 )
+VERSION_MARKER = "configure:app.version"
+VERSION_MARKER_RE = re.compile(
+    r'^(\s*const val NAME:\s*String\s*=\s*")(?:\\.|[^"\\])*("\s*//\s*configure:app\.version)\s*$'
+)
+VERSION_RE = re.compile(r"^(?:0|[1-9]\d*)(?:\.(?:0|[1-9]\d*)){0,2}$")
 TITLE_RE = re.compile(r"<title>(.*?)</title>", re.DOTALL)
-IDENT_KEYS = ("app.displayName", "app.rootName", "app.group")
+IDENT_KEYS = ("app.displayName", "app.rootName", "app.group", "app.version")
 HELP_COMMANDS = {"", "list", "help", "-h", "--help", "—help", "–help"}
 # Hard keywords cannot be package segments. Soft keywords such as "get" can.
 HARD_KEYWORDS = {
@@ -73,14 +78,20 @@ def read_props():
 
 def help_text(values=None):
     if values is None:
-        display, root_name, group = "（尚未設定）", "（尚未設定）", "（尚未設定）"
+        display, root_name, group, version = (
+            "（尚未設定）",
+            "（尚未設定）",
+            "（尚未設定）",
+            "（尚未設定）",
+        )
     else:
         display = values.get("app.displayName") or "（尚未設定）"
         root_name = values.get("app.rootName") or "（尚未設定）"
         group = values.get("app.group") or "（尚未設定）"
+        version = values.get("app.version") or "（尚未設定）"
     return f"""Kotlin Multiplatform 專案模板設定
 
-把這個目錄複製成新專案的起點後，用這個指令換掉範本名稱。
+把這個目錄複製成新專案的起點後，用這個指令換掉範本名稱或版號。
 資料夾名稱請在複製時自己取。這個指令不會重新命名所在的目錄。
 
 用法：
@@ -88,6 +99,7 @@ def help_text(values=None):
   ./configure.sh list
   ./configure.sh --help
   ./configure.sh proj_name <名稱>
+  ./configure.sh version <版號>
 
 第一個參數：
   list, help, -h, --help
@@ -95,7 +107,7 @@ def help_text(values=None):
 
   proj_name <名稱>
       把專案顯示名稱改成 <名稱>。
-      視窗標題、網頁標題、主畫面文字與 About 都讀這個名稱。
+      視窗標題、網頁標題、主畫面、About、macOS 選單與 Dock 都讀這個名稱。
       名稱可含空白；不加引號的多個參數會用空白接起來。
 
       若名稱含英文或數字，會一併更新：
@@ -106,14 +118,22 @@ def help_text(values=None):
 
       名稱不可包含 " \\ $ # = 或換行。
 
+  version <版號>
+      把產品版號改成 <版號>。About 的第二行、Gradle 版本與
+      打包版號都讀這個值。
+      格式是 MAJOR、MAJOR.MINOR 或 MAJOR.MINOR.PATCH，例如 0.2 或 0.2.0。
+      不含 v 前綴。不會改 Kotlin、Compose 或函式庫的版號。
+
 目前專案：
   顯示名稱  {display}
   Gradle    {root_name}
   套件      {group}
+  版本      {version}
 
 範例：
   ./configure.sh proj_name "Stock Viewer"
   ./configure.sh proj_name MyApp
+  ./configure.sh version 0.2
 """
 
 
@@ -419,6 +439,94 @@ def cmd_proj_name(args):
             print(f"  {item}")
 
 
+def version_marker_values(text):
+    found = []
+    for line in text.splitlines():
+        if VERSION_MARKER not in line:
+            continue
+        if not VERSION_MARKER_RE.match(line):
+            die("找到版號標記，但該行格式無法更新：\n" + line)
+        value = re.match(
+            r'\s*const val NAME:\s*String\s*=\s*"((?:\\.|[^"\\])*)"',
+            line,
+        )
+        if not value:
+            die("找不到 NAME 字串：" + line)
+        found.append(value.group(1))
+    return found
+
+
+def find_version_marker():
+    found = []
+    for path in iter_text_files():
+        if path.suffix != ".kt":
+            continue
+        text = path.read_text(encoding="utf-8")
+        for value in version_marker_values(text):
+            found.append((path, value))
+    if len(found) != 1:
+        die(f"版號的 configure 標記必須正好一處，目前有 {len(found)} 處。")
+    return found[0]
+
+
+def apply_version_marker(text, version):
+    lines = text.splitlines(keepends=True)
+    count = 0
+    out = []
+    for line in lines:
+        ending = ""
+        body = line
+        for suffix in ("\r\n", "\n", "\r"):
+            if body.endswith(suffix):
+                body, ending = body[: -len(suffix)], suffix
+                break
+        if VERSION_MARKER in body:
+            match = VERSION_MARKER_RE.match(body)
+            if not match:
+                die("找到版號標記，但該行格式無法更新：\n" + body)
+            body = f"{match.group(1)}{version}{match.group(2)}"
+            count += 1
+        out.append(body + ending)
+    if count != 1:
+        die(f"版號標記更新次數是 {count}，預期 1。")
+    return "".join(out)
+
+
+def cmd_version(args):
+    if len(args) != 1:
+        print("version 需要一個版號。", file=sys.stderr)
+        print("例如：./configure.sh version 0.2", file=sys.stderr)
+        print(file=sys.stderr)
+        print_help()
+        raise SystemExit(1)
+
+    version = args[0].strip()
+    if not VERSION_RE.fullmatch(version):
+        die("版號須為 MAJOR、MAJOR.MINOR 或 MAJOR.MINOR.PATCH，例如 0.2 或 0.2.0。")
+
+    props_text, values = read_props()
+    old_version = values["app.version"]
+    marker_path, marker_current = find_version_marker()
+
+    if version == old_version == marker_current:
+        print(f"已經是這個版本：{version}")
+        return
+
+    changed = []
+    props_updated = apply_props(props_text, {"app.version": version})
+    write_if_changed(ROOT / PROPS_FILE, props_updated, changed)
+
+    marker_text = marker_path.read_text(encoding="utf-8")
+    write_if_changed(marker_path, apply_version_marker(marker_text, version), changed)
+
+    print("已更新版號。")
+    print(f"  版本  {version}")
+    if changed:
+        print("已修改：")
+        for path in changed:
+            print(f"  {path}")
+
+
 def main():
     args = sys.argv[1:]
     command = args[0] if args else ""
@@ -427,6 +535,9 @@ def main():
         return
     if command == "proj_name":
         cmd_proj_name(args[1:])
+        return
+    if command == "version":
+        cmd_version(args[1:])
         return
     print(f"未知的參數：{command}", file=sys.stderr)
     print(file=sys.stderr)

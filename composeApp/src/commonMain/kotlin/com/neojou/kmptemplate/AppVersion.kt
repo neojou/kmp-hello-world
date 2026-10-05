@@ -1,33 +1,30 @@
 package com.neojou.kmptemplate
 
 /**
- * Application product version — **single source of truth** for UI / About.
+ * Product name and version shown by the app.
  *
- * When bumping a release, update these constants first, then follow
- * [docs/VERSIONING.md](../../../../../docs/VERSIONING.md) (repo root).
+ * [APP_NAME] is the user-visible name. The window title, the HTML title, the home
+ * headline, About, and the macOS application menu all read it.
+ * `./configure.sh proj_name` rewrites the literal on that line.
+ * See docs/programming/How-To-Change_Project_Name.md.
  *
- * Scheme (product-facing, not forced SemVer):
- * - [NAME]: `MAJOR.MINOR` (e.g. `"0.1"`) or `MAJOR.MINOR.PATCH` when needed
- * - [DISPLAY]: shown in About, typically `"v" + NAME`
+ * [NAME] is the product version, with no leading `v`. About shows `Version` plus
+ * this value. The Gradle project version reads `app.version` in gradle.properties.
+ * `./configure.sh version` rewrites both.
+ * See docs/programming/How-To-Change_Version_number.md.
  */
 object AppVersion {
     /**
      * User-visible product name.
      *
-     * Window title, HTML title, home headline, and About all read this value.
      * `./configure.sh proj_name` rewrites the literal on this line.
      */
     const val APP_NAME: String = "KMP Template" // configure:app.displayName
 
     /**
-     * Marketing / product version string (no leading `v`).
-     * Current release: **0.11**
+     * Product version, for example `0.1` or `0.2.0`. No leading `v`.
+     *
+     * `./configure.sh version` rewrites the literal on this line.
      */
-    const val NAME: String = "0.1"
-
-    /** User-visible label, e.g. `v0.1`. */
-    const val DISPLAY: String = "v$NAME"
-
-    /** One-line blurb for About. */
-    const val SUMMARY: String = "KMP 範本"
+    const val NAME: String = "0.2" // configure:app.version
 }

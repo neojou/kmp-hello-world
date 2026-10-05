@@ -11,6 +11,24 @@ import com.neojou.tools.LogLevel
 import com.neojou.tools.MyLog
 import com.neojou.tools.SystemSettings
 
+/**
+ * Open and close state for the one About dialog.
+ *
+ * The in-app About item and the macOS application-menu About item share one instance.
+ */
+class AboutRequest {
+    var visible by mutableStateOf(false)
+        private set
+
+    fun show() {
+        visible = true
+    }
+
+    fun dismiss() {
+        visible = false
+    }
+}
+
 
 /**
  * Log tag used by [App] for app-level logging.
@@ -57,7 +75,7 @@ private sealed class AppInitState {
  * @see LaunchedEffect
  */
 @Composable
-fun App() {
+fun App(about: AboutRequest = remember { AboutRequest() }) {
     var initState: AppInitState by remember { mutableStateOf(AppInitState.Loading) }
 
     LaunchedEffect(Unit) {
@@ -75,8 +93,11 @@ fun App() {
     AppTheme {
         when (val state = initState) {
             AppInitState.Loading -> Text("Loading...")
-            AppInitState.Ready -> HomeScreen()
+            AppInitState.Ready -> HomeScreen(about)
             is AppInitState.Error -> Text("Init failed: ${state.error.message ?: "unknown"}")
+        }
+        if (about.visible) {
+            AboutDialog(onDismiss = about::dismiss)
         }
     }
 }

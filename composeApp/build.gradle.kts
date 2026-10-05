@@ -10,9 +10,11 @@ plugins {
 
 val appGroup = providers.gradleProperty("app.group").get()
 val appRootName = providers.gradleProperty("app.rootName").get()
+val appDisplayName = providers.gradleProperty("app.displayName").get()
+val appVersion = providers.gradleProperty("app.version").get()
 
 group = appGroup
-version = "0.1.0"
+version = appVersion
 
 kotlin {
     jvm("desktop")
@@ -47,6 +49,24 @@ kotlin {
 compose.desktop {
     application {
         mainClass = "$appGroup.MainKt"
+
+        // The macOS menu bar name is fixed when the JVM starts. Gradle `run` does not
+        // package an app, so the dock name has to be passed as a launcher argument.
+        if (System.getProperty("os.name").orEmpty().contains("mac", ignoreCase = true)) {
+            jvmArgs += listOf(
+                "-Dapple.awt.application.name=$appDisplayName",
+                "-Xdock:name=$appDisplayName",
+            )
+        }
+
+        nativeDistributions {
+            packageName = appRootName
+            packageVersion = appVersion
+            macOS {
+                dockName = appDisplayName
+                bundleID = appGroup
+            }
+        }
     }
 }
 
