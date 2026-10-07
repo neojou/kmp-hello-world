@@ -13,6 +13,8 @@ import java.awt.EventQueue
 /**
  * Desktop entry — opens a window hosting [App].
  *
+ * Creates a Compose for Desktop [Window] within [application]
+ * and hosts the shared [App] composable.
  * On macOS the system application menu uses [AppVersion.APP_NAME], and its About
  * item opens the same dialog as the in-app About item.
  */
